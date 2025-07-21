@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.wsp.mybookshelf.domain.community.dto.PostRequestDto;
 import org.wsp.mybookshelf.domain.community.dto.PostResponseDto;
 import org.wsp.mybookshelf.domain.community.entity.BoardType;
+import org.wsp.mybookshelf.domain.community.service.PostLikeService;
 import org.wsp.mybookshelf.domain.community.service.PostService;
 import org.wsp.mybookshelf.domain.user.entity.User;
 import org.wsp.mybookshelf.domain.user.service.UserService;
@@ -23,6 +24,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final PostLikeService postLikeService;
     private final UserService userService;
 
     // 1. 게시글 작성
@@ -97,5 +99,35 @@ public class PostController {
 
         postService.deletePost(id, user);
         return ResponseEntity.ok(ApiResponse.onSuccess("게시글이 삭제되었습니다."));
+    }
+
+    // 좋아요 토글 (누르면 등록/취소)
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<String> toggleLike(@PathVariable Long postId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        boolean liked = postLikeService.toggleLike(postId, userId);
+        return ResponseEntity.ok(liked ? "좋아요 등록됨" : "좋아요 취소됨");
+    }
+
+    // 해당 게시글의 좋아요 수 반환
+    @GetMapping("/{postId}/likes/count")
+    public ResponseEntity<Long> getLikeCount(@PathVariable Long postId) {
+        long count = postLikeService.countLikes(postId);
+        return ResponseEntity.ok(count);
+    }
+
+    // 내가 해당 게시글에 좋아요 눌렀는지
+    @GetMapping("/{postId}/liked")
+    public ResponseEntity<Boolean> isLikedByUser(@PathVariable Long postId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.ok(false);
+        }
+        boolean liked = postLikeService.isLikedByUser(postId, userId);
+        return ResponseEntity.ok(liked);
     }
 }
