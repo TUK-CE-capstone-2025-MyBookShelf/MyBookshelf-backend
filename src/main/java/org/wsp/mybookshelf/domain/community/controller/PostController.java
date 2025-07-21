@@ -6,9 +6,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.wsp.mybookshelf.domain.community.dto.CommentRequestDto;
+import org.wsp.mybookshelf.domain.community.dto.CommentResponseDto;
 import org.wsp.mybookshelf.domain.community.dto.PostRequestDto;
 import org.wsp.mybookshelf.domain.community.dto.PostResponseDto;
 import org.wsp.mybookshelf.domain.community.entity.BoardType;
+import org.wsp.mybookshelf.domain.community.service.CommentService;
 import org.wsp.mybookshelf.domain.community.service.PostLikeService;
 import org.wsp.mybookshelf.domain.community.service.PostService;
 import org.wsp.mybookshelf.domain.user.entity.User;
@@ -25,6 +28,7 @@ public class PostController {
     private final PostService postService;
     private final PostLikeService postLikeService;
     private final UserService userService;
+    private final CommentService commentService;
 
     // 1. 게시글 작성
     @PostMapping
@@ -128,5 +132,47 @@ public class PostController {
         }
         boolean liked = postLikeService.isLikedByUser(postId, userId);
         return ResponseEntity.ok(liked);
+    }
+
+    // 댓글 등록
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<CommentResponseDto> createComment(@PathVariable Long postId,
+                                                            @RequestBody CommentRequestDto dto,
+                                                            HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(commentService.createComment(postId, dto, userId));
+    }
+
+    // 댓글 목록 조회
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<List<CommentResponseDto>> getComments(@PathVariable Long postId) {
+        return ResponseEntity.ok(commentService.getComments(postId));
+    }
+
+    // 댓글 수정
+    @PutMapping("/comments/{commentId}")
+    public ResponseEntity<CommentResponseDto> updateComment(@PathVariable Long commentId,
+                                                            @RequestBody CommentRequestDto dto,
+                                                            HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(commentService.updateComment(commentId, dto, userId));
+    }
+
+    // 댓글 삭제
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId,
+                                              HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        commentService.deleteComment(commentId, userId);
+        return ResponseEntity.noContent().build();
     }
 }
