@@ -8,6 +8,7 @@ import org.wsp.mybookshelf.domain.community.dto.PostRequestDto;
 import org.wsp.mybookshelf.domain.community.dto.PostResponseDto;
 import org.wsp.mybookshelf.domain.community.entity.BoardType;
 import org.wsp.mybookshelf.domain.community.entity.Post;
+import org.wsp.mybookshelf.domain.community.repository.PostLikeRepository;
 import org.wsp.mybookshelf.domain.community.repository.PostRepository;
 import org.wsp.mybookshelf.domain.user.entity.User;
 import org.wsp.mybookshelf.domain.user.repository.UserRepository;
@@ -22,11 +23,12 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository; // 필요 시 사용
     private final ModelMapper modelMapper = new ModelMapper(); // or 수동 매핑
 
     // 1. 게시글 생성
-    public PostResponseDto createPost(PostRequestDto dto, User user) {
+    public PostResponseDto createPost(PostRequestDto dto, User user, Long userId) {
         Post post = Post.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
@@ -38,28 +40,28 @@ public class PostService {
                 .build();
 
         postRepository.save(post);
-        return toDto(post);
+        return toDto(post, userId);
     }
 
     // 2. 게시글 목록 조회 (자유 게시판만)
     @Transactional(readOnly = true)
-    public List<PostResponseDto> getPosts(BoardType boardType) {
-        return postRepository.findByBoardTypeOrderByCreatedAtDesc(boardType)
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public List<PostResponseDto> getPosts(BoardType boardType, Long userId) {
+        List<Post> posts = postRepository.findByBoardTypeOrderByCreatedAtDesc(boardType);
+        return posts.stream()
+                .map(post -> toDto(post, userId))
+                .toList();
     }
 
     // 3. 게시글 상세 조회
     @Transactional(readOnly = true)
-    public PostResponseDto getPost(Long id) {
+    public PostResponseDto getPost(Long id, Long userId) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
-        return toDto(post);
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+        return toDto(post, userId);
     }
 
     // 4. 게시글 수정
-    public PostResponseDto updatePost(Long id, PostRequestDto dto, User user) {
+    public PostResponseDto updatePost(Long id, PostRequestDto dto, User user, Long userId) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
         validateAuthor(post, user);
@@ -69,7 +71,7 @@ public class PostService {
         post.setAnonymous(dto.isAnonymous());
         post.setUpdatedAt(LocalDateTime.now());
 
-        return toDto(post);
+        return toDto(post, userId);
     }
 
     // 5. 게시글 삭제
@@ -88,17 +90,26 @@ public class PostService {
     }
 
     // 응답 DTO로 변환
-    private PostResponseDto toDto(Post post) {
+    private PostResponseDto toDto(Post post, Long userId) {
         String authorName = post.isAnonymous() ? "익명" : post.getAuthor().getNickName();
+        long likeCount = postLikeRepository.countByPost(post);
+        Boolean likedByUser = null;
+        if (userId != null) {
+            likedByUser = postLikeRepository.existsByPostAndUser(post, userRepository.findById(userId).orElse(null));
+        }
+
         return PostResponseDto.builder()
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .authorName(authorName)
-                .isAnonymous(post.isAnonymous())
                 .boardType(post.getBoardType())
+                .isAnonymous(post.isAnonymous())
                 .createdAt(post.getCreatedAt())
+                .likeCount(likeCount)
+                .likedByUser(likedByUser)
                 .build();
     }
+
 }
 

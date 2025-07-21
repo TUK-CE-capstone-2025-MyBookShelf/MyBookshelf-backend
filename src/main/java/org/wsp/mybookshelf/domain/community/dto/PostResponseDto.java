@@ -18,4 +18,7 @@ public class PostResponseDto {
     private boolean isAnonymous;
     private BoardType boardType;
     private LocalDateTime createdAt;
+
+    private Long likeCount;
+    private Boolean likedByUser; // 좋아요 눌렀는지 확인
 }

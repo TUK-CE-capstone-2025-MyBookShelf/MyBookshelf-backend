@@ -42,24 +42,24 @@ public class PostController {
         Long userId = (Long) session.getAttribute("userId");
         User user = userService.findUserById(userId);
 
-        PostResponseDto response = postService.createPost(requestDto, user);
+        PostResponseDto response = postService.createPost(requestDto, user, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(response));
     }
 
     // 2. 게시글 목록 조회 (기본: 자유게시판)
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PostResponseDto>>> getPosts(
-            @RequestParam(defaultValue = "FREE") BoardType boardType) {
-        List<PostResponseDto> posts = postService.getPosts(boardType);
-        return ResponseEntity.ok(ApiResponse.onSuccess(posts));
+    public ResponseEntity<List<PostResponseDto>> getPosts(@RequestParam(defaultValue = "FREE") BoardType boardType,
+                                                          HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        return ResponseEntity.ok(postService.getPosts(boardType, userId));
     }
 
     // 3. 게시글 상세 조회
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<PostResponseDto>> getPost(@PathVariable Long id) {
-        PostResponseDto post = postService.getPost(id);
-        return ResponseEntity.ok(ApiResponse.onSuccess(post));
+    public ResponseEntity<PostResponseDto> getPost(@PathVariable Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        return ResponseEntity.ok(postService.getPost(id, userId));
     }
 
     // 4. 게시글 수정
@@ -78,7 +78,7 @@ public class PostController {
         Long userId = (Long) session.getAttribute("userId");
         User user = userService.findUserById(userId);
 
-        PostResponseDto updated = postService.updatePost(id, requestDto, user);
+        PostResponseDto updated = postService.updatePost(id, requestDto, user, userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(updated));
     }
 
