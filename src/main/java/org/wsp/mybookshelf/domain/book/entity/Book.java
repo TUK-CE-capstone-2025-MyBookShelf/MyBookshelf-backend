@@ -3,8 +3,6 @@ package org.wsp.mybookshelf.domain.book.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
-
 @Entity
 @Table(name = "Book")
 @Getter
@@ -28,24 +26,27 @@ public class Book {
     @Column(name = "publisher")
     private String publisher;
 
-    @Column(name = "published_date")
-    private Date publishedDate;
+    @Column(name = "category_id")  //카테고리 ID
+    private Integer categoryId;
+    
+    @Column(name = "category_name") //카테고리 이름
+    private String categoryName;
 
     @Column(name = "isbn")
     private String isbn;
 
-    @Column(name = "category")
-    private String category;
+    @Column(name = "published_date") // 출판일로 변경
+    private String publicationDate;
 
-    @Column(name = "thumbnail")
-    private String thumbnail;
+    @Column(name = "thumbnail") // 책 표지로 변경
+    private String cover;
 
-    @Column(name = "created_at")
-    private Date createdAt;
+    @Column(name = "customer_review_rank")
+    private Integer customerReviewRank;
+
+    @Column(name = "source") // 데이터 출처 추가
+    private String source;
 
     @Column(name = "description")
     private String description;
-
-    @Column(name = "page")
-    private Integer page;
 }

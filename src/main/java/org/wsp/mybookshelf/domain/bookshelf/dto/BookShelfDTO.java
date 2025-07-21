@@ -20,4 +20,12 @@ public class BookShelfDTO {
         private Long userId;          // 사용자 ID
         private String bookshelfName; // 책장 이름
     }
+
+    // 책장 이름 변경 DTO
+    @Getter
+    @AllArgsConstructor
+    public static class UpdateBookShelfDTO {
+        private Long bookshelfId;
+        private String newBookshelfName;
+    }
 }

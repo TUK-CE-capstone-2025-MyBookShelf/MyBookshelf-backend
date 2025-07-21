@@ -3,14 +3,18 @@ package org.wsp.mybookshelf.domain.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.wsp.mybookshelf.domain.bookshelf.repository.BookShelfRepository;
 import org.wsp.mybookshelf.domain.user.dto.UserRequestDTO;
 import org.wsp.mybookshelf.domain.user.dto.UserResponseDTO;
 import org.wsp.mybookshelf.domain.user.entity.User;
 import org.wsp.mybookshelf.domain.user.entity.UserGenre;
 import org.wsp.mybookshelf.domain.user.repository.UserRepository;
+import org.wsp.mybookshelf.global.commonEntity.enums.Genre;
 import org.wsp.mybookshelf.global.commonEntity.enums.Status;
 
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +24,8 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final BookShelfRepository bookShelfRepository; // ✅ 추가
+
 
     @Transactional
     public User registerUser(UserRequestDTO.RegisterRequestDTO requestDTO) {
@@ -61,11 +67,17 @@ public class UserService {
 
         // 사용자 정보 응답 DTO로 변환
         return UserResponseDTO.builder()
-                .id(user.getUserId())
+                .userId(user.getUserId())
                 .email(user.getEmail())
                 .realname(user.getRealName())
                 .nickname(user.getNickName())
                 .build();
+    }
+
+    // 사용자 ID로 정보 가져오기
+    public User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
     }
 
     // 이메일 중복 검사
@@ -103,6 +115,19 @@ public class UserService {
         // 추가적인 검증 로직 (예: 인증 코드 생성 등)
     }
 
+    public int getUserAge(String birthDateString) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate birthDate = LocalDate.parse(birthDateString, formatter);
+
+        LocalDate currentDate = LocalDate.now();
+
+        if ((birthDate != null) && (currentDate != null)) {
+            return Period.between(birthDate, currentDate).getYears();
+        }
+        else
+            return 0;
+    }
+
     // 비밀번호 변경
     @Transactional
     public void changePassword(String email, String newPassword) {
@@ -116,4 +141,19 @@ public class UserService {
         user.setPassword(newPassword);
         userRepository.save(user);
     }
+
+    public List<Genre> getUserPreferredGenresByBookshelfId(Long bookshelfId) {
+        return bookShelfRepository.findById(bookshelfId)
+                .map(bookshelf -> bookshelf.getUser())
+                .map(User::getPreferredGenres) // 여기서 이미 Genre 리스트
+                .orElseThrow(() -> new RuntimeException("해당 책장 ID로 사용자를 찾을 수 없습니다."));
+    }
+
+    public List<Genre> getUserPreferredGenresByUserId(Long userId) {
+        return userRepository.findById(userId)
+                .map(User::getPreferredGenres)
+                .orElseThrow(() -> new RuntimeException("해당 ID의 사용자를 찾을 수 없습니다."));
+    }
+
+
 }

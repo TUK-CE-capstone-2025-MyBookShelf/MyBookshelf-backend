@@ -1,3 +1,11 @@
+# Application properties
+application.properties
+src/main/resources/application.properties
+src/main/resources/application.yml
+src/main/resources/application-*.properties
+src/main/resources/application-*.yml
+BE-MyBookShelf/src/main/resources/application.properties
+
 # Java
 *.class
 *.jar
@@ -12,7 +20,7 @@ target/
 
 # Gradle
 .gradle/
-build/ 
+build/
 
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties

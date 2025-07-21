@@ -2,11 +2,13 @@ package org.wsp.mybookshelf.domain.bookshelf.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.wsp.mybookshelf.domain.mappingbook.entity.MappingBook;
 import org.wsp.mybookshelf.domain.user.entity.User;
 import org.wsp.mybookshelf.global.commonEntity.enums.Status;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "BookShelf")
@@ -34,6 +36,9 @@ public class BookShelf {
 
     @Column(name = "status")
     private String status;
+
+    @OneToMany(mappedBy = "bookshelf", cascade = CascadeType.REMOVE)
+    private List<MappingBook> mappingBooks;
 
     @PrePersist
     protected void onCreate() {

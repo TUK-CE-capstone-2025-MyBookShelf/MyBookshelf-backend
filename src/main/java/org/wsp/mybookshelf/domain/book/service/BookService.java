@@ -15,22 +15,28 @@ public class BookService {
     private BookRepository bookRepository;
     
     //DB에 도서 없으면 도서 등록
-    public Book addBookIfNotExists(BookDTO.BookDetailDTO bookDetailDTO) {
-        Optional<Book> existingBook = bookRepository.findByIsbn(bookDetailDTO.getIsbn());
+    public Book addBookIfNotExists(BookDTO bookDTO) {
+        Optional<Book> existingBook = bookRepository.findByIsbn(bookDTO.getIsbn());
         if (existingBook.isPresent()) {
             return existingBook.get();
         } else {
-            Book newBook = new Book();
-            newBook.setTitle(bookDetailDTO.getBookTitle());
-            newBook.setIsbn(bookDetailDTO.getIsbn());
-            newBook.setThumbnail(bookDetailDTO.getThumbnail());
-            newBook.setAuthor(bookDetailDTO.getAuthor());
-            newBook.setPublisher(bookDetailDTO.getPublisher());
-            newBook.setCategory(bookDetailDTO.getCategory());
-            newBook.setDescription(bookDetailDTO.getDescription());
-            newBook.setPage(bookDetailDTO.getPage());
-            // 추가적인 필드
+            Book newBook = Book.builder()
+                    .title(bookDTO.getTitle())
+                    .isbn(bookDTO.getIsbn())
+                    .cover(bookDTO.getCover())
+                    .author(bookDTO.getAuthor())
+                    .publisher(bookDTO.getPublisher())
+                    .categoryId(bookDTO.getCategoryId())
+                    .categoryName(bookDTO.getCategoryName())
+                    .description(bookDTO.getDescription())
+                    .publicationDate(bookDTO.getPublicationDate()) // 출판일 추가
+                    .customerReviewRank(bookDTO.getCustomerReviewRank()) // 고객 리뷰 순위 추가
+                    .source(bookDTO.getSource()) // 데이터 출처 추가
+                    .build();
+
             return bookRepository.save(newBook);
         }
     }
+
+
 }

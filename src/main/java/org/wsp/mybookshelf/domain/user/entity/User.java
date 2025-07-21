@@ -6,11 +6,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.wsp.mybookshelf.global.commonEntity.enums.Gender;
+import org.wsp.mybookshelf.global.commonEntity.enums.Genre;
 import org.wsp.mybookshelf.global.commonEntity.enums.Status;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "User")
@@ -65,5 +67,19 @@ public class User {
         this.createdAt = LocalDate.now(); // 생성일 자동 설정
         this.status = Status.ACTIVE; // 기본 상태를 활성으로 설정
     }
+
+    public Object getId() {
+        return userId;
+    }
+
+    public List<Genre> getPreferredGenres() {
+        if (this.getUserGenre() == null) return List.of();
+        return this.getUserGenre().stream()
+                .map(UserGenre::getGenre)
+                .collect(Collectors.toList());
+    }
+
+
+
 }
 

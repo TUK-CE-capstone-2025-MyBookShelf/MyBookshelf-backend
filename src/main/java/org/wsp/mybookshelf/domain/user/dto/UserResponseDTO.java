@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UserResponseDTO {
-    private Long id;             // 사용자 ID
+    private Long userId;             // 사용자 ID
     private String email;        // 이메일
     private String realname;         // 본명
     private String nickname;     // 닉네임
