@@ -15,7 +15,6 @@ import org.wsp.mybookshelf.domain.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +24,6 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository; // 필요 시 사용
-    private final ModelMapper modelMapper = new ModelMapper(); // or 수동 매핑
 
     // 1. 게시글 생성
     public PostResponseDto createPost(PostRequestDto dto, User user, Long userId) {
