@@ -5,11 +5,14 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.wsp.mybookshelf.domain.community.dto.CommentRequestDto;
+import org.wsp.mybookshelf.domain.community.dto.CommentResponseDto;
 import org.wsp.mybookshelf.domain.community.dto.PostRequestDto;
 import org.wsp.mybookshelf.domain.community.dto.PostResponseDto;
 import org.wsp.mybookshelf.domain.community.entity.BoardType;
+import org.wsp.mybookshelf.domain.community.service.CommentService;
+import org.wsp.mybookshelf.domain.community.service.PostLikeService;
 import org.wsp.mybookshelf.domain.community.service.PostService;
 import org.wsp.mybookshelf.domain.user.entity.User;
 import org.wsp.mybookshelf.domain.user.service.UserService;
@@ -23,7 +26,9 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final PostLikeService postLikeService;
     private final UserService userService;
+    private final CommentService commentService;
 
     // 1. 게시글 작성
     @PostMapping
@@ -40,24 +45,24 @@ public class PostController {
         Long userId = (Long) session.getAttribute("userId");
         User user = userService.findUserById(userId);
 
-        PostResponseDto response = postService.createPost(requestDto, user);
+        PostResponseDto response = postService.createPost(requestDto, user, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(response));
     }
 
     // 2. 게시글 목록 조회 (기본: 자유게시판)
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PostResponseDto>>> getPosts(
-            @RequestParam(defaultValue = "FREE") BoardType boardType) {
-        List<PostResponseDto> posts = postService.getPosts(boardType);
-        return ResponseEntity.ok(ApiResponse.onSuccess(posts));
+    public ResponseEntity<List<PostResponseDto>> getPosts(@RequestParam(defaultValue = "FREE") BoardType boardType,
+                                                          HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        return ResponseEntity.ok(postService.getPosts(boardType, userId));
     }
 
     // 3. 게시글 상세 조회
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<PostResponseDto>> getPost(@PathVariable Long id) {
-        PostResponseDto post = postService.getPost(id);
-        return ResponseEntity.ok(ApiResponse.onSuccess(post));
+    public ResponseEntity<PostResponseDto> getPost(@PathVariable Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        return ResponseEntity.ok(postService.getPost(id, userId));
     }
 
     // 4. 게시글 수정
@@ -76,7 +81,7 @@ public class PostController {
         Long userId = (Long) session.getAttribute("userId");
         User user = userService.findUserById(userId);
 
-        PostResponseDto updated = postService.updatePost(id, requestDto, user);
+        PostResponseDto updated = postService.updatePost(id, requestDto, user, userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(updated));
     }
 
@@ -97,5 +102,77 @@ public class PostController {
 
         postService.deletePost(id, user);
         return ResponseEntity.ok(ApiResponse.onSuccess("게시글이 삭제되었습니다."));
+    }
+
+    // 좋아요 토글 (누르면 등록/취소)
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<String> toggleLike(@PathVariable Long postId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        boolean liked = postLikeService.toggleLike(postId, userId);
+        return ResponseEntity.ok(liked ? "좋아요 등록됨" : "좋아요 취소됨");
+    }
+
+    // 해당 게시글의 좋아요 수 반환
+    @GetMapping("/{postId}/likes/count")
+    public ResponseEntity<Long> getLikeCount(@PathVariable Long postId) {
+        long count = postLikeService.countLikes(postId);
+        return ResponseEntity.ok(count);
+    }
+
+    // 내가 해당 게시글에 좋아요 눌렀는지
+    @GetMapping("/{postId}/liked")
+    public ResponseEntity<Boolean> isLikedByUser(@PathVariable Long postId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.ok(false);
+        }
+        boolean liked = postLikeService.isLikedByUser(postId, userId);
+        return ResponseEntity.ok(liked);
+    }
+
+    // 댓글 등록
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<CommentResponseDto> createComment(@PathVariable Long postId,
+                                                            @RequestBody CommentRequestDto dto,
+                                                            HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(commentService.createComment(postId, dto, userId));
+    }
+
+    // 댓글 목록 조회
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<List<CommentResponseDto>> getComments(@PathVariable Long postId) {
+        return ResponseEntity.ok(commentService.getComments(postId));
+    }
+
+    // 댓글 수정
+    @PutMapping("/comments/{commentId}")
+    public ResponseEntity<CommentResponseDto> updateComment(@PathVariable Long commentId,
+                                                            @RequestBody CommentRequestDto dto,
+                                                            HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(commentService.updateComment(commentId, dto, userId));
+    }
+
+    // 댓글 삭제
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId,
+                                              HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        commentService.deleteComment(commentId, userId);
+        return ResponseEntity.noContent().build();
     }
 }
