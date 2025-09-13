@@ -2,6 +2,8 @@ package org.wsp.mybookshelf.domain.community.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.wsp.mybookshelf.domain.user.entity.User;
 
 import java.time.LocalDateTime;
@@ -17,6 +19,7 @@ public class Comment {
     // 어떤 게시글의 댓글인지
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Post post;
 
     // 누가 작성했는지
