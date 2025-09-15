@@ -8,6 +8,7 @@ import org.wsp.mybookshelf.domain.community.dto.PostRequestDto;
 import org.wsp.mybookshelf.domain.community.dto.PostResponseDto;
 import org.wsp.mybookshelf.domain.community.entity.BoardType;
 import org.wsp.mybookshelf.domain.community.entity.Post;
+import org.wsp.mybookshelf.domain.community.repository.CommentRepository;
 import org.wsp.mybookshelf.domain.community.repository.PostLikeRepository;
 import org.wsp.mybookshelf.domain.community.repository.PostRepository;
 import org.wsp.mybookshelf.domain.user.entity.User;
@@ -24,6 +25,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository; // 필요 시 사용
+    private final CommentRepository commentRepository;
 
     // 1. 게시글 생성
     public PostResponseDto createPost(PostRequestDto dto, User user, Long userId) {
@@ -73,10 +75,16 @@ public class PostService {
     }
 
     // 5. 게시글 삭제
+    @Transactional
     public void deletePost(Long id, User user) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+
         validateAuthor(post, user);
+
+        commentRepository.deleteByPostId(id);
+        postLikeRepository.deleteByPostId(id);
+
         postRepository.delete(post);
     }
 
@@ -108,6 +116,4 @@ public class PostService {
                 .likedByUser(likedByUser)
                 .build();
     }
-
 }
-
