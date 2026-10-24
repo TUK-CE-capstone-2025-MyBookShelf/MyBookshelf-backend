@@ -15,14 +15,22 @@ public class OpenAIClient {
     private final RestTemplate restTemplate;
 
     // 🔹 application.properties 또는 application.yml에서 API 키 자동 주입
-    @Value("${openai.api.key}")
+    @Value("${openai.api.key:}")
     private String openAiApiKey;
+
+    @Value("${openai.enabled:false}")
+    private boolean enabled;
 
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
+    public boolean isEnabled() {
+        return enabled && openAiApiKey != null && !openAiApiKey.isBlank();
+    }
+
     public String getCompletion(String prompt, String model) {
+        if (!isEnabled()) return "";
         try {
-            Thread.sleep(1000); // 요청 간 딜레이
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

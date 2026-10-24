@@ -19,6 +19,8 @@ public class OpenAIService {
 
     // 키워드 누락 시 GPT로 보완
     public List<BookKeywordResponse.Keyword> generateMissingKeywords(String isbn, int missingCount) {
+        if (!openAIClient.isEnabled()) return Collections.emptyList();
+
         BookResponse bookInfo = aladinService.searchBookDetail(isbn);
         if (bookInfo == null) return Collections.emptyList();
 
@@ -81,6 +83,8 @@ public class OpenAIService {
 
     // ✅ GPT-4 Turbo로 변경
     public Map<String, Double> getKeywordSimilarityScore(String prompt) {
+        if (!openAIClient.isEnabled()) return new HashMap<>();
+
         String response = openAIClient.getCompletion(prompt, "gpt-4-turbo");  // 수정됨
 
         Map<String, Double> scoreMap = new HashMap<>();
