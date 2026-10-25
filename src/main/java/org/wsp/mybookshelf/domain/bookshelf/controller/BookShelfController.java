@@ -54,6 +54,11 @@ public class BookShelfController {
         // 1. ISBN을 통해 도서 정보 검색
         BookResponse bookResponse = aladinService.searchBookDetail(isbn13);
 
+        if (bookResponse == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.onFailure("404", "책 정보를 찾을 수 없습니다."));
+        }
+
         // 2. 검색된 도서를 BookDTO로 변환
         BookDTO bookDTO = new BookDTO(
                 null,  // bookId는 새롭게 등록될 것이므로 null

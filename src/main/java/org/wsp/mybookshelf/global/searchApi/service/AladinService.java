@@ -62,10 +62,11 @@
         }
 
         public BookResponse searchBookDetail(String isbn13) {
-            String url = "https://www.aladin.co.kr/ttb/api/ItemSearch.aspx?TTBKey=" + API_KEY +
-                    "&Query=" + isbn13 +
+            String url = "https://www.aladin.co.kr/ttb/api/ItemLookUp.aspx?TTBKey=" + API_KEY +
+                    "&ItemIdType=ISBN" +
+                    "&ItemId=" + isbn13 +
                     "&Cover=Big" +
-                    "&SearchTarget=Book&Output=JS&Version=20131101";
+                    "&Output=JS&Version=20131101";
 
             Map response = restTemplate.getForObject(url, Map.class);
 
@@ -101,9 +102,10 @@
         }
 
         public BookResponse searchBookCover(String isbn13) {
-            String url = "https://www.aladin.co.kr/ttb/api/ItemSearch.aspx?TTBKey=" + API_KEY +
-                    "&Query=" + isbn13 +
-                    "&SearchTarget=Book&Output=JS&Version=20131101";
+            String url = "https://www.aladin.co.kr/ttb/api/ItemLookUp.aspx?TTBKey=" + API_KEY +
+                    "&ItemIdType=ISBN" +
+                    "&ItemId=" + isbn13 +
+                    "&Output=JS&Version=20131101";
 
             Map response = restTemplate.getForObject(url, Map.class);
 
