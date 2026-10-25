@@ -2,6 +2,7 @@
 
     import com.fasterxml.jackson.databind.JsonNode;
     import com.fasterxml.jackson.databind.ObjectMapper;
+    import org.springframework.beans.factory.annotation.Value;
     import org.wsp.mybookshelf.global.searchApi.dto.BookRatingResponse;
     import org.wsp.mybookshelf.global.searchApi.dto.BookResponse;
     import org.springframework.stereotype.Service;
@@ -13,11 +14,9 @@
     @Service
     public class AladinService {
         private final RestTemplate restTemplate;
-        private final String API_KEY = "ttbywoo97971149001"; // API 키 입력
+        @Value("${aladin.api.ttbkey:}")
+        private String API_KEY;
 
-        //private final String API_KEY = "ttbkang456dh06060322001"; // API 키 입력
-
-        //private final String API_KEY = "ttbjjojin71682109001"; // API 키 입력
         private static final int MIN_REVIEWS = 0;
 
         public AladinService(RestTemplate restTemplate) {

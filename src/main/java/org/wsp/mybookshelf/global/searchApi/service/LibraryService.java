@@ -1,5 +1,6 @@
 package org.wsp.mybookshelf.global.searchApi.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.wsp.mybookshelf.domain.book.dto.BookCandidateDTO;
 import org.wsp.mybookshelf.domain.book.dto.BookKeywordResponse;
@@ -16,7 +17,8 @@ import java.util.stream.Collectors;
 public class LibraryService {
 
     private final RestTemplate restTemplate;
-    private static final String API_KEY = "22f142f8a1be2fe8871c7c10227c2d96ea0c115af60850f3c088409abfd3286c";
+    @Value("${library.api.authKey:}")
+    private String API_KEY;
     private static final String BASE_URL = "https://data4library.kr/api";
 
     public LibraryService(RestTemplate restTemplate) {

@@ -12,7 +12,6 @@ import java.util.Map;
 @Service
 public class GoogleBooksService {
     private final WebClient webClient;
-    private final String API_KEY = "AIzaSyDOvwaQ1kO4N9BEYOot76HNGT2ghzi6Cxc"; // API 키 입력
 
     public GoogleBooksService(WebClient webClient) {
         this.webClient = webClient;
@@ -25,7 +24,6 @@ public class GoogleBooksService {
                         .host("www.googleapis.com")
                         .path("/books/v1/volumes")
                         .queryParam("q", query)
-                        //.queryParam("key", API_KEY)  // 필요하면 주석 해제
                         .build())
                 .retrieve()
                 .bodyToMono(Map.class)
